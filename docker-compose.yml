@@ -1,0 +1,63 @@
+version: "3"
+#Redes
+networks:
+  queue-network:
+    driver: bridge
+
+#Volumes
+volumes:
+  dbdata:
+    driver: local
+
+services:
+  #PHP
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: queue-docker
+    container_name: queue-app
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - queue-network
+
+  #Nginx
+  webserver:
+    image: nginx:alpine
+    container_name: queue-webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - queue-network
+
+  #MySQL Service
+  db:
+    image: mariadb:10
+    container_name: queue-db
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: queue
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_toor
+      MYSQL_ROOT_PASSWORD: toor
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - queue-network
