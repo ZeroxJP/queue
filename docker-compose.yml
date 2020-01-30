@@ -28,6 +28,23 @@ services:
     networks:
       - queue-network
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: queue-docker
+    container_name: queue-worker
+    restart: unless-stopped
+    tty: true
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    networks:
+      - queue-network
+
   #Nginx
   webserver:
     image: nginx:alpine
@@ -39,6 +56,24 @@ services:
     volumes:
       - ./:/var/www
       - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - queue-network
+
+  #Redis
+  redis:
+    container_name: queue-redis
+    image: redis
+    networks:
+      - queue-network
+
+  #gearman
+  gearman:
+    container_name: gearman-queue
+    image: mikolatero/gearman-job-server
+    ports:
+      - "4730:4730"
+    volumes:
+      - ./workers/work.php:/usr/local/src/work.php
     networks:
       - queue-network
 
