@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('job', 'JobController@pull');
 Route::get('jobs', 'JobController@index');
 Route::get('jobs/{id}', 'JobController@show');
 Route::post('jobs', 'JobController@store');

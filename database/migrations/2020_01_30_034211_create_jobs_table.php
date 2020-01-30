@@ -16,6 +16,7 @@ class CreateJobsTable extends Migration
         Schema::create('jobs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedInteger('user_id')->nullable();
+            $table->string('work_id')->nullable();
             $table->unsignedInteger('processor_id')->nullable();
             $table->string('priority');
             $table->longText('command');

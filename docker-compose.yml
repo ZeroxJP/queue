@@ -36,6 +36,9 @@ services:
     container_name: queue-worker
     restart: unless-stopped
     tty: true
+    depends_on:
+      - gearman
+    command: php work.php
     environment:
       SERVICE_NAME: app
       SERVICE_TAGS: dev

@@ -11,11 +11,15 @@ function job_function($job)
 {
     $date = new DateTime();
     $datetime= date_format($date, 'Y-m-d H:i:s');
+    $payload = explode(",",$job->workload());
+    echo "Hola";
+    shell_exec($payload[0]);
+    echo "adios";
 
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
-      CURLOPT_URL => "http://webserver/api/jobs/1/work",
+      CURLOPT_URL => "http://webserver/api/jobs/".$payload[1]."/work",
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING => "",
       CURLOPT_MAXREDIRS => 10,

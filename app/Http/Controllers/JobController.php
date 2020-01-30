@@ -9,51 +9,51 @@ use Illuminate\Http\Request;
 class JobController extends Controller
 {
     public function index()
-    {
+    {        
+        $client = new \GearmanClient();
+        $client->addServer("gearman");
+        $something = $client->doBackground("wait","10,1");
+        return $something;
         return Job::all();
     }
     
-    public function pull(){
-        $client = new \GearmanClient();
-        $client->addServer("gearman");
-        $client->doBackground("wait","10,1");
-        return('work');
-        
-    }
-
-
     public function store(Request $request)
     {
         $client = new \GearmanClient();
         $client->addServer("gearman");
         $queued_jobs = [];
         foreach($request->input('jobs') as $new_job){
-            $job = Job::create([
-                'user_id' => $new_job['user_id'],
-                'priority' => $new_job['priority'],
-                'command' => $new_job['command']
-            ]);
-            array_push($queued_jobs,$job->id); 
-                    
+            $job = new Job;
+            $job->user_id = $new_job['user_id'];
+            $job->priority = $new_job['priority'];
+            $job->command = $new_job['command'];
+            
             switch ($job->priority) {
             case "high":
-                $client->doHighBackground("wait",$job->command.",".$job->id);
+                $work_id = $client->doHighBackground("wait",$job->command.",".$job->id , $job->id);
                 break;
             case "medium":
-                $client->doBackground("wait",$job->command.",".$job->id);
+                $work_id = $client->doBackground("wait",$job->command.",".$job->id , $job->id);
                 break;
             case "low":
-                $client->doLowBackground("wait",$job->command.",".$job->id);
+                $work_id = $client->doLowBackground("wait",$job->command.",".$job->id , $job->id);
                 break;
-            }        
+            }
+            $job ->work_id = $work_id;
+            $job->save();
+            array_push($queued_jobs,$job->id); 
         }
         return $queued_jobs;
     }
 
 
     public function show($id)
-    {
-        return Job::find($id);
+    {   
+        $client = new \GearmanClient();
+        $client->addServer("gearman");
+        $job = Job::find($id);
+        $job->status = $client->jobStatus($job->work_id);
+        return $job;
     }
 
 
