@@ -21,7 +21,7 @@ post a la url localhost/api/jobs para agregar trabajos a la cola, se retorna la 
 }
 ```
 
-localhost/api/jobs/{id}
+para revisar estado de los jobs localhost/api/jobs/{id}
 
 ```json
 {
@@ -40,3 +40,11 @@ localhost/api/jobs/{id}
 ```
 
 status son los usados por gearman, si responde true al comienzo esta corriendo el proceso en la maquina gearman-job-server
+
+Proyecto usando laravel 6, gearman, docker, docker-compose.
+
+Archivos importantes
+JobController.php
+routes/api.php
+
+workers/work.php
