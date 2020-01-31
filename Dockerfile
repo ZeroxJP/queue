@@ -20,6 +20,11 @@ RUN set -xe \
   ; rm -r $TMPDIR \
   ; docker-php-ext-enable gearman
 
+#redis extension
+RUN pecl install -o -f redis \
+  &&  rm -rf /tmp/pear \
+  &&  docker-php-ext-enable redis
+
 COPY . /var/www
 #persmisos usados por laravel en carpeta storage
 RUN chmod -R 755 /var/www/storage

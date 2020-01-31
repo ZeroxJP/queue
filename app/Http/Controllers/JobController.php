@@ -5,16 +5,21 @@ namespace App\Http\Controllers;
 use App\Job;
 use App\Jobs\Work;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class JobController extends Controller
 {
     public function index()
-    {        
-        $client = new \GearmanClient();
-        $client->addServer("gearman");
-        $something = $client->doBackground("wait","10,1");
-        return $something;
-        return Job::all();
+    {       
+        //revisamos si tenemos la lista de jobs en cache 
+        if($jobs = Cache::get('jobs')){
+            return $jobs;
+        }
+        //si no guardamos todos los jobs en cache (guardamos por 5 minutos)
+        $jobs = Cache::remember('jobs', 5, function () {
+            return Job::all();
+        });
+        return $jobs;
     }
     
     public function store(Request $request)
@@ -60,13 +65,18 @@ class JobController extends Controller
     public function update(Request $request, $id)
     {
         $job = Job::findOrFail($id);
-        if($job->processor_id !== null){
-            return response('process already running',401);
+
+        $client = new \GearmanClient();
+        $client->addServer("gearman");
+        $work = $client->jobStatus($job->work_id);
+        if($work[0] || $job->ended_at !== null){
+            return response('process already finished',401);
         }
         $job->user_id = $request->input('user_id');
         $job->priority = $request->input('priority');
         $job->command = $request->input('command');
         $job->save();
+        //no se pueden cancelar o updatear jobs de gearman desde la extension de php
         return response('ok',200);
         
     }
